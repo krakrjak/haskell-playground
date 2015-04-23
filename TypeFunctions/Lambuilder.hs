@@ -5,7 +5,7 @@
 module LamBuilder() where
 
 data LamExpr a where
-	Lit  :: Int -> LamExpr Int
+	Lit :: Int -> LamExpr Int
 	Add :: LamExpr Int -> LamExpr Int -> LamExpr Int
 	App :: LamExpr (a -> b) -> LamExpr a -> LamExpr b
 
