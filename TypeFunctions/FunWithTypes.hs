@@ -5,6 +5,9 @@
 -- Needed for the Nat example
 {-#LANGUAGE ScopedTypeVariables #-}
 
+-- 7.6.3 for baseAddr
+{-#LANGUAGE DataKinds #-}
+
 module FunWithTypes() where
 
 class Cons a b where
@@ -43,12 +46,10 @@ type instance GCD (Succ d) (Succ m) Zero = GCD (Succ Zero) d m
 type instance GCD (Succ d) Zero (Succ n) = GCD (Succ Zero) d n
 
 newtype Pointer n = MkPointer Int
+	deriving Show
 newtype Offset  n = MkOffset Int
+	deriving Show
 
--- Usage: multiple 4 :: Offset Three
-multiple :: forall n. (Nat n) => Int -> Offset n
-multiple i = MkOffset (i * toInt (undefined :: n))
-
--- Usage: add (undefined :: Pointer Six) (undefined :: Offset Four)
-add :: Pointer m -> Offset n -> Pointer (GCD Zero m n)
-add (MkPointer x) (MkOffset y) = MkPointer (x + y)
+-- Usage: baseAddr 4 :: Offset Three
+baseAddr :: forall n. (Nat n) => Int -> Offset n
+baseAddr i = MkOffset (i * toInt (undefined :: n))
