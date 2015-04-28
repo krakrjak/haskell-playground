@@ -32,3 +32,7 @@ data Vec :: * -> * -> * where
     Cons :: a -> Vec a n -> Vec a (S n)
 deriving instance Show a => Show (Vec a n)
 
+-- Does not work without Promotion!
+--concatVec :: Vec a m -> Vec a n -> Vec a o 
+--concatVec Nil         v2 = v2
+--concatVec (Cons a v1) v2 = Cons a $ concatVec v1 v2
