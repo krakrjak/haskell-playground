@@ -13,43 +13,45 @@ module FunWithTypes() where
 class Cons a b where
     type ResTy a b
     cons :: a-> [b] -> [ResTy a b]
+    append :: [a] -> [b]
 
 instance Cons Integer Double where
     type ResTy Integer Double = Double
     cons x ys = fromIntegral x : ys
 
-data Zero
-data Succ n
+data N = Z | Suc N
 
-type One   = Succ Zero
-type Two   = Succ One
-type Three = Succ Two
-type Four  = Succ Three
-type Six   = Succ (Succ Four)
-type Eight = Succ (Succ Six)
+type One   = Suc Z
+type Two   = Suc One
+type Three = Suc Two
+type Four  = Suc Three
+type Six   = Suc (Suc Four)
+type Eight = Suc (Suc Six)
 
-class Nat n where
-    toInt :: n -> Int
 
-instance Nat Zero where
+type family GCD (d :: N) (m :: N) (n :: N) :: N
+type instance GCD d Z Z             = d
+type instance GCD d (Suc m) (Suc n) = GCD (Suc d) m n
+type instance GCD Z (Suc m) Z       = Suc m
+type instance GCD Z Z (Suc n)       = Suc n
+type instance GCD (Suc d) (Suc m) Z = GCD (Suc Z) d m
+type instance GCD (Suc d) Z (Suc n) = GCD (Suc Z) d n
+
+class Nat (n::N) where
+    toInt :: forall p. p n -> Int
+instance Nat Z where
     toInt _ = 0
-
-instance (Nat n) => Nat (Succ n) where
+instance (Nat n) => Nat (Suc n) where
     toInt _ = 1 + toInt (undefined :: n)
 
-type family GCD d m n
-type instance GCD d Zero Zero            = d
-type instance GCD d (Succ m) (Succ n)    = GCD (Succ d) m n
-type instance GCD Zero (Succ m) Zero     = Succ m
-type instance GCD Zero Zero (Succ n)     = Succ n
-type instance GCD (Succ d) (Succ m) Zero = GCD (Succ Zero) d m
-type instance GCD (Succ d) Zero (Succ n) = GCD (Succ Zero) d n
-
-newtype Pointer n = MkPointer Int
-	deriving Show
-newtype Offset  n = MkOffset Int
-	deriving Show
+-- Word Alignment in Bytes
+newtype Alignment n = MkAlignment Int deriving Show
+-- Byte address for a value
+newtype Pointer   n = MkPointer Int deriving Show
 
 -- Usage: baseAddr 4 :: Offset Three
-baseAddr :: forall n. (Nat n) => Int -> Offset n
-baseAddr i = MkOffset (i * toInt (undefined :: n))
+baseAddr :: forall n. (Nat n) => Int -> Alignment n
+baseAddr i = MkAlignment (i * toInt (undefined :: n))
+
+verifyBoundary :: (GCD Z n Four ~ Four) => Pointer n
+verifyBoundary = undefined
