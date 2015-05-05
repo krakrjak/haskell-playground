@@ -9,11 +9,6 @@
 
 module UTMTypes() where
 
---GADT Natural Numbers, promoted as Types and Kinds
-data Nat where
-    Zero :: Nat
-    Suc  :: Nat -> Nat
-
 type Step a = Either (Char, TMState a) (Char, TMState a, HeadMove)
 
 --Turing Machine States as types and kinds
@@ -111,6 +106,7 @@ mkTape xs@(h:t) = resetL $ foldr (\v zip -> moveR $ write v zip) empty xs
 
 tape1 :: String
 tape1 = "1011001"
+tape2 :: String
 tape2 = "00100110"
 
 utm :: (Tape t, t ~ VZip Char) => (TMState a -> Char -> Step a) -> TMState a -> t -> t
