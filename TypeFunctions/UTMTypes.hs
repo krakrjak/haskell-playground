@@ -85,17 +85,35 @@ simulate f q    t = case f q (curr t) of
     Right (sym, state, MoveLeft)  -> (state, moveL $ write sym t)
     Right (sym, state, MoveRight) -> (state, moveR $ write sym t)
 
-deltaFun :: TMState a -> Char -> Step a
-deltaFun st sym = undefined
+deltaFun :: TMState String -> Char -> Step String
+deltaFun st sym = case sym of
+    '0' -> case st of
+        NState "start"  -> Right ('0', NState "start0", MoveRight)
+        NState "start0" -> Right ('0', NState "start0", MoveRight)
+        NState "start1" -> Right ('1', NState "start1", MoveRight)
+        NState "rewind" -> Right ('0', NState "rewind", MoveLeft)
+    '1' -> case st of
+        NState "start"  -> Right ('1', NState "start1", MoveRight)
+        NState "start0" -> Right ('0', NState "start0", MoveRight)
+        NState "start1" -> Right ('1', NState "start1", MoveRight)
+        NState "rewind" -> Right ('1', NState "rewind", MoveLeft)
+    '\0' -> case st of
+        NState "start"  -> Left  ('\0', Halt)
+        NState "start0" -> Right ('\0', NState "rewind", MoveLeft)
+        NState "start1" -> Right ('\0', NState "rewind", MoveLeft)
+        NState "rewind" -> Right ('\0', Halt, MoveRight)
+    _ -> Left (sym, Halt)
 
 mkTape :: (Tape t, t ~ VZip Char) => [Char] -> t
 mkTape []    = empty
-mkTape xs@(h:t) = foldr (\v zip -> moveR $ write v zip) empty xs
+mkTape xs@(h:t) = resetL $ foldr (\v zip -> moveR $ write v zip) empty xs
 
 tape1 :: String
 tape1 = "10100"
 
 utm :: (Tape t, t ~ VZip Char) => (TMState a -> Char -> Step a) -> TMState a -> t -> t
-utm fun st z = snd $ simulate fun st z
+utm fun st z = case simulate fun st z of
+    (Halt, t) -> t
+    (newSt, t) -> snd $ simulate fun newSt t
 
 main = print . show $ extractActive $ utm deltaFun (NState "start") (mkTape tape1)
