@@ -81,6 +81,7 @@ instance (a ~ Char) => Tape (VZip a) where
 simulate :: (Tape t, Elem t ~ Char) => (TMState a -> Char -> Step a) -> TMState a-> t -> (TMState a, t)
 simulate f Halt t = (Halt, t)
 simulate f q    t = case f q (curr t) of
+    Left  (sym, Halt)             -> (Halt, t)
     Left  (sym, state)            -> (state, write sym t)
     Right (sym, state, MoveLeft)  -> (state, moveL $ write sym t)
     Right (sym, state, MoveRight) -> (state, moveR $ write sym t)
@@ -109,11 +110,12 @@ mkTape []    = empty
 mkTape xs@(h:t) = resetL $ foldr (\v zip -> moveR $ write v zip) empty xs
 
 tape1 :: String
-tape1 = "10100"
+tape1 = "1011001"
+tape2 = "00100110"
 
 utm :: (Tape t, t ~ VZip Char) => (TMState a -> Char -> Step a) -> TMState a -> t -> t
 utm fun st z = case simulate fun st z of
     (Halt, t) -> t
-    (newSt, t) -> snd $ simulate fun newSt t
+    (newSt, t) -> utm fun newSt t
 
-main = print . show $ extractActive $ utm deltaFun (NState "start") (mkTape tape1)
+main = print . show $ extractActive $ utm deltaFun (NState "start") (mkTape tape2)
